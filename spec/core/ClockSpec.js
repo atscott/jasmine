@@ -709,6 +709,7 @@ describe('Clock (acceptance)', function() {
         mockDate
       );
       clock.install();
+      clock.setAutoTickMode(true);
     });
 
     afterEach(() => {
@@ -750,7 +751,6 @@ describe('Clock (acceptance)', function() {
       expect(fn2).not.toHaveBeenCalled();
       expect(fn3).not.toHaveBeenCalled();
 
-      clock.setAutoTickMode(true);
       return new Promise(resolve => clock.setTimeout(resolve, 50))
         .then(function() {
           expect(recurring).toHaveBeenCalledTimes(1);
@@ -783,7 +783,6 @@ describe('Clock (acceptance)', function() {
       for (let i = 0; i < 1000; i++) {
         promises.push(new Promise(resolve => clock.setTimeout(resolve)));
       }
-      clock.setAutoTickMode(true);
       const startTimeMs = performance.now() / 1000;
       await Promise.all(promises);
       const endTimeMs = performance.now() / 1000;
@@ -791,7 +790,6 @@ describe('Clock (acceptance)', function() {
     });
 
     it('cancels autoTick when turned off', async function() {
-      clock.setAutoTickMode(true);
       let p1Resolved = false;
       let p2Resolved = false;
       const p1 = new Promise(resolve => clock.setTimeout(resolve, 1)).then(
@@ -814,6 +812,21 @@ describe('Clock (acceptance)', function() {
       await p2;
       expect(p1Resolved).toBe(true);
       expect(p2Resolved).toBe(true);
+    });
+
+    it('is easy to test async functions with interleaved timers and microtasks', async () => {
+      async function blackBoxWithLotsOfAsyncStuff() {
+        await new Promise(r => clock.setTimeout(r, 10));
+        await Promise.resolve();
+        await Promise.resolve();
+        await new Promise(r => clock.setTimeout(r, 20));
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+        return 'done';
+      }
+      const result = await blackBoxWithLotsOfAsyncStuff();
+      expect(result).toBe('done');
     });
   });
 
