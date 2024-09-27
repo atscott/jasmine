@@ -1,3 +1,7 @@
+/**
+ * @typedef {"auto" | "manual"} TickMode
+ */
+
 getJasmineRequireObj().Clock = function() {
   /* global process */
   const NODE_JS =
@@ -29,8 +33,8 @@ getJasmineRequireObj().Clock = function() {
     let installed = false;
     let delayedFunctionScheduler;
     let timer;
-    let autoTickMode = {
-      autoTick: false,
+    let tickMode = {
+      mode: 'manual',
       counter: 0
     };
 
@@ -143,20 +147,23 @@ getJasmineRequireObj().Clock = function() {
     };
 
     /**
-     * Enables or disables automatic advancing of the Clock's timers.
-
-     * When enabled, the time is automatically advanced asynchronously after a macrotask, giving
+     * Updates how the clock ticks.
+     *
+     * There are two modes of operation:
+     *
+     * - 'manual': The clock will not execute timers unless `clock.tick()` is called.
+     * - 'auto': The time is automatically advanced asynchronously after a macrotask, giving
      * microtasks and events outside the clock a chance to run before each timer runs.
      *
-     * @param {boolean} shouldAutoTick
+     * @param {TickMode} newMode
      */
-    this.setAutoTickMode = function(shouldAutoTick) {
-      const { mode, counter } = autoTickMode;
-      if (shouldAutoTick === mode) {
+    this.setTickMode = function(newMode) {
+      const { mode, counter } = tickMode;
+      if (newMode === mode) {
         return;
       }
-      autoTickMode = { mode: shouldAutoTick, counter: counter + 1 };
-      if (shouldAutoTick) {
+      tickMode = { mode: newMode, counter: counter + 1 };
+      if (newMode === 'auto') {
         advanceUntilModeChanges();
       }
     };
@@ -178,13 +185,13 @@ getJasmineRequireObj().Clock = function() {
           'Mock clock is not installed, use jasmine.clock().install()'
         );
       }
-      const { counter } = autoTickMode;
+      const { counter } = tickMode;
 
       while (true) {
         await newMacrotask();
 
         if (
-          autoTickMode.counter !== counter ||
+          tickMode.counter !== counter ||
           !installed ||
           delayedFunctionScheduler === null
         ) {

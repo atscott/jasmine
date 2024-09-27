@@ -687,7 +687,7 @@ describe('Clock (acceptance)', function() {
     expect(recurring1.calls.count()).toBe(4);
   });
 
-  describe('autoTick mode', () => {
+  describe('auto tick mode', () => {
     let delayedFunctionScheduler;
     let mockDate;
     let clock;
@@ -709,7 +709,7 @@ describe('Clock (acceptance)', function() {
         mockDate
       );
       clock.install();
-      clock.setAutoTickMode(true);
+      clock.setTickMode('auto');
     });
 
     afterEach(() => {
@@ -803,12 +803,12 @@ describe('Clock (acceptance)', function() {
       expect(p1Resolved).toBe(true);
       expect(p2Resolved).toBe(false);
 
-      clock.setAutoTickMode(false);
+      clock.setTickMode('manual');
       await new Promise(resolve => realTimeout(resolve, 2));
       expect(p1Resolved).toBe(true);
       expect(p2Resolved).toBe(false);
 
-      clock.setAutoTickMode(true);
+      clock.setTickMode('auto');
       await p2;
       expect(p1Resolved).toBe(true);
       expect(p2Resolved).toBe(true);
